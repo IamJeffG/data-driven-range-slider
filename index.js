@@ -16,6 +16,7 @@ class RangeSlider {
       data: null,
       accessor: null,
       aggregator: null,
+      maxDays: null, // optional integer - the when isDate, this is max range you may select
       yScale: null,
       freezeMin: null,
       onBrush: (d) => d,
@@ -304,7 +305,7 @@ class RangeSlider {
         .range(dateRangesCount)
         .map((d) => [dateScale.invert(d), dateScale.invert(d + 1)]);
     }
-    
+
     attrs.dateScale = dateScale;
     attrs.dataFinal = dataFinal;
     attrs.scaleTime = scaleTime;
@@ -427,6 +428,22 @@ class RangeSlider {
       }
 
       var d0 = event.selection.map(scaleX.invert);
+      // limit range to attrs.maxDays if set
+      if (attrs.isDate && attrs.maxDays) {
+        // convert numeric domain values to actual Date objects
+        const start = attrs.dateScale.invert(d0[0]);
+        const end = attrs.dateScale.invert(d0[1]);
+        const diffDays = (end - start) / (1000 * 60 * 60 * 24);
+        if (diffDays > attrs.maxDays) {
+          const limitedEnd = new Date(start);
+          limitedEnd.setDate(start.getDate() + attrs.maxDays);
+          // overwrite the selection in-place
+          event.selection[1] = scaleX(attrs.dateScale(limitedEnd));
+          // recompute d0 to reflect clamped range
+          d0 = event.selection.map(scaleX.invert);
+        }
+      }
+
       const s = event.selection;
 
       handle.attr("display", null).attr("transform", function (d, i) {
