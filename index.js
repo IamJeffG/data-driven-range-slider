@@ -428,13 +428,16 @@ class RangeSlider {
       }
 
       var d0 = event.selection.map(scaleX.invert);
-      // limit range to attrs.maxDays if set
+
+      // clamp range to attrs.maxDays if set
+      let needsClamp = false;
       if (attrs.isDate && attrs.maxDays) {
         // convert numeric domain values to actual Date objects
         const start = attrs.dateScale.invert(d0[0]);
         const end = attrs.dateScale.invert(d0[1]);
         const diffDays = (end - start) / (1000 * 60 * 60 * 24);
         if (diffDays > attrs.maxDays) {
+          needsClamp = true;
           const limitedEnd = new Date(start);
           limitedEnd.setDate(start.getDate() + attrs.maxDays);
           // overwrite the selection in-place
@@ -452,6 +455,22 @@ class RangeSlider {
       output({
         range: d0,
       });
+
+      // Force D3 to redraw the selection rectangle with clamped coordinates
+      if (needsClamp) {
+        const brushBehavior = event.target;
+        const brushNode = this;
+
+        // D3's brush.move() triggers brush events, which would cause infinite recursion.
+        // To avoid this:
+        // (1) temporarily remove the brush handler,
+        // (2) call move() to set D3's internal selection state to what we just calculated
+        //     (this will re-render the .selected rectangle with to match our new clamped coordinates),
+        // (3) restore the handler for future user interactions.
+        brushBehavior.on("brush", null);
+        d3.select(brushNode).call(brushBehavior.move, s);
+        brushBehavior.on("brush", brushed);
+      }
     }
 
     yAxisWrapper.selectAll(".domain").remove();
