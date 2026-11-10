@@ -16,6 +16,7 @@ class RangeSlider {
       data: null,
       accessor: null,
       aggregator: null,
+      maxDays: null, // optional integer - the when isDate, this is max range you may select
       yScale: null,
       freezeMin: null,
       onBrush: (d) => d,
@@ -304,7 +305,7 @@ class RangeSlider {
         .range(dateRangesCount)
         .map((d) => [dateScale.invert(d), dateScale.invert(d + 1)]);
     }
-    
+
     attrs.dateScale = dateScale;
     attrs.dataFinal = dataFinal;
     attrs.scaleTime = scaleTime;
@@ -427,6 +428,25 @@ class RangeSlider {
       }
 
       var d0 = event.selection.map(scaleX.invert);
+
+      // clamp range to attrs.maxDays if set
+      let needsClamp = false;
+      if (attrs.isDate && attrs.maxDays) {
+        // convert numeric domain values to actual Date objects
+        const start = attrs.dateScale.invert(d0[0]);
+        const end = attrs.dateScale.invert(d0[1]);
+        const diffDays = (end - start) / (1000 * 60 * 60 * 24);
+        if (diffDays > attrs.maxDays) {
+          needsClamp = true;
+          const limitedEnd = new Date(start);
+          limitedEnd.setDate(start.getDate() + attrs.maxDays);
+          // overwrite the selection in-place
+          event.selection[1] = scaleX(attrs.dateScale(limitedEnd));
+          // recompute d0 to reflect clamped range
+          d0 = event.selection.map(scaleX.invert);
+        }
+      }
+
       const s = event.selection;
 
       handle.attr("display", null).attr("transform", function (d, i) {
@@ -435,6 +455,22 @@ class RangeSlider {
       output({
         range: d0,
       });
+
+      // Force D3 to redraw the selection rectangle with clamped coordinates
+      if (needsClamp) {
+        const brushBehavior = event.target;
+        const brushNode = this;
+
+        // D3's brush.move() triggers brush events, which would cause infinite recursion.
+        // To avoid this:
+        // (1) temporarily remove the brush handler,
+        // (2) call move() to set D3's internal selection state to what we just calculated
+        //     (this will re-render the .selected rectangle with to match our new clamped coordinates),
+        // (3) restore the handler for future user interactions.
+        brushBehavior.on("brush", null);
+        d3.select(brushNode).call(brushBehavior.move, s);
+        brushBehavior.on("brush", brushed);
+      }
     }
 
     yAxisWrapper.selectAll(".domain").remove();
