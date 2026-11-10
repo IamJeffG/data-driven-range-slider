@@ -3,6 +3,8 @@
 
 # Data driven range slider
 
+> **This is a maintained fork** of [bumbeishvili/data-driven-range-slider](https://github.com/bumbeishvili/data-driven-range-slider), originally created by David Bumbeishvili. It includes d3 v6+ support and minor new features.
+
 Add interactivity to your web apps
 
 [![NPM Version](https://d25lcipzij17d.cloudfront.net/badge.svg?id=js&type=6&v=1.0.0&x2=0)](https://npmjs.org/package/data-driven-range-slider) 

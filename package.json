@@ -3,12 +3,15 @@
   "version": "2.0.0",
   "description": "d3.js based data driven range slider",
   "main": "index.js",
+  "files": [
+    "index.js"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bumbeishvili/data-driven-range-slider.git"
+    "url": "git+https://github.com/IamJeffG/data-driven-range-slider.git"
   },
   "keywords": [
     "d3",
@@ -25,7 +28,7 @@
   "author": "David B.",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/bumbeishvili/data-driven-range-slider/issues"
+    "url": "https://github.com/IamJeffG/data-driven-range-slider/issues"
   },
-  "homepage": "https://github.com/bumbeishvili/data-driven-range-slider#readme"
+  "homepage": "https://github.com/IamJeffG/data-driven-range-slider#readme"
 }
